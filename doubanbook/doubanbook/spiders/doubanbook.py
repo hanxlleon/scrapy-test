@@ -9,21 +9,22 @@ class DoubanbookSpider(CrawlSpider):
     name = 'doubanbook'
     allowed_domains = ['douban.com']
     start_urls = ['http://book.douban.com']
-    rules = [Rule(LinkExtractor(allow=[r'tag/[^/]+/\?focus=book']), callback='parse_douban')]
+    rules = [Rule(LinkExtractor(allow=[r'tag/[^/]+/\?focus=book']), callback='parse_douban', process_request='add_cookie')]
 
     def parse_douban(self, response):
+        self.log("Fetch book list page: %s" % response.url)
         item = DoubanbookItem()
         item['url'] = response.url
 
-        # book_detail = response.xpath("//div[@id='book']/dl/dd")
-        # item['name'] = book_detail.xpath("a/text()")
-        # item['star'] = book_detail.xpath("div[@class='rating']/span[2]/text()")
-        # item['name'] = response.xpath("//div[@id='book']/dl/dd/a/text()").extract()
         item['tag'] = response.xpath("//div[@class='title']/h1/text()").extract()[0]
-        for name in response.xpath("//div[@id='book']/dl/dd/a/text()").extract():
-            item['name'] = name
-        # item['star'] = response.xpath("//div[@id='book']/dl/dd/div[@class='rating']/span[2]/text()").extract()
-        for star in response.xpath("//div[@id='book']/dl/dd/div[@class='rating']/span[2]/text()").extract():
-            item['star'] = star
+        name_list = response.xpath("//div[@id='book']/dl/dd/a/text()").extract()
+        star_list = response.xpath("//div[@id='book']/dl/dd/div[@class='rating']/span[2]/text()").extract()
+        book_list = map(None, name_list, star_list)
+        for book in book_list:
+            item['name'], item['star'] = book
+            yield item
 
-        yield item
+    def add_cookie(self, request):
+        request.replace(cookies=[{'name': 'COOKIE_NAME', 'value': 'VALUE', 'domain': '.douban.com', 'path': '/'}])
+        return request
+
