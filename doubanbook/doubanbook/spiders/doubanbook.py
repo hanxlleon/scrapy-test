@@ -9,7 +9,8 @@ class DoubanbookSpider(CrawlSpider):
     name = 'doubanbook'
     allowed_domains = ['douban.com']
     start_urls = ['http://book.douban.com']
-    rules = [Rule(LinkExtractor(allow=[r'tag/[^/]+/\?focus=book']), callback='parse_douban', process_request='add_cookie')]
+    # rules = [Rule(LinkExtractor(allow=[r'tag/[^/]+/\?focus=book']), callback='parse_douban', process_request='add_cookie')]
+    rules = [Rule(LinkExtractor(allow=[r'tag/[^/]+/\?focus=book']), callback='parse_douban')]
 
     def parse_douban(self, response):
         self.log("Fetch book list page: %s" % response.url)
